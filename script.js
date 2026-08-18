@@ -1,3 +1,23 @@
+// FAMOSI brand favicon on every page.
+(() => {
+  if (!document.querySelector('link[rel="icon"]')) {
+    const icon = document.createElement('link');
+    icon.rel = 'icon';
+    icon.type = 'image/svg+xml';
+    icon.href = '/favicon.svg';
+    document.head.appendChild(icon);
+  }
+})();
+
+// Discourage casual copying while keeping form fields usable.
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('selectstart', e => {
+  if (!e.target.closest('input, textarea')) e.preventDefault();
+});
+document.addEventListener('dragstart', e => {
+  if (!e.target.closest('input, textarea')) e.preventDefault();
+});
+
 window.addEventListener('load',()=>setTimeout(()=>document.querySelector('.loader')?.classList.add('hide'),450));
 const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}}),{threshold:.1});document.querySelectorAll('.reveal').forEach((e,i)=>{e.style.transitionDelay=`${(i%3)*70}ms`;obs.observe(e)});
 const cursor=document.querySelector('.cursor');addEventListener('pointermove',e=>{if(cursor){cursor.style.left=e.clientX+'px';cursor.style.top=e.clientY+'px'}});
