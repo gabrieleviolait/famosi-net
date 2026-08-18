@@ -15,6 +15,13 @@ const escapeHtml = (value) => clean(value, 5000)
   .replaceAll('"', '&quot;')
   .replaceAll("'", '&#039;');
 
+const websitePattern = /^(https?:\/\/)?(www\.)?[a-z0-9][a-z0-9.-]*\.[a-z]{2,}([\/:?#].*)?$/i;
+const normalizeWebsite = (value) => {
+  const website = clean(value, 300);
+  if (!website) return '';
+  return /^https?:\/\//i.test(website) ? website : `https://${website}`;
+};
+
 export async function onRequestPost(context) {
   const { request, env } = context;
 
@@ -43,12 +50,13 @@ export async function onRequestPost(context) {
   const name = clean(body.name, 120);
   const knownFor = clean(body.knownFor, 160);
   const email = clean(body.email, 180).toLowerCase();
-  const website = clean(body.website, 300);
+  const websiteInput = clean(body.website, 300);
+  const website = normalizeWebsite(websiteInput);
   const story = clean(body.story, 4000);
   const privacy = body.privacy === true;
 
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(email);
-  const websiteOk = !website || /^https?:\/\//i.test(website);
+  const websiteOk = !websiteInput || websitePattern.test(websiteInput);
 
   if (!name || !knownFor || !emailOk || !websiteOk || !privacy) {
     return json({ error: 'Controlla i campi obbligatori e riprova.' }, 400);
@@ -65,7 +73,7 @@ export async function onRequestPost(context) {
       <p><strong>Nome / stage name:</strong> ${escapeHtml(name)}</p>
       <p><strong>Known for:</strong> ${escapeHtml(knownFor)}</p>
       <p><strong>Email:</strong> <a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p>
-      <p><strong>Sito / profilo:</strong> ${website ? `<a href="${escapeHtml(website)}">${escapeHtml(website)}</a>` : '—'}</p>
+      <p><strong>Sito / profilo:</strong> ${website ? `<a href="${escapeHtml(website)}">${escapeHtml(websiteInput)}</a>` : '—'}</p>
       <p><strong>Story:</strong><br>${story ? escapeHtml(story).replaceAll('\n','<br>') : '—'}</p>
       <hr>
       <p style="font-size:12px;color:#666">Privacy accettata: sì<br>Data UTC: ${escapeHtml(submittedAt)}<br>Paese CF: ${escapeHtml(country)}<br>IP: ${escapeHtml(ip)}<br>User-Agent: ${escapeHtml(userAgent)}</p>
@@ -76,7 +84,7 @@ export async function onRequestPost(context) {
     `Nome / stage name: ${name}`,
     `Known for: ${knownFor}`,
     `Email: ${email}`,
-    `Sito / profilo: ${website || '—'}`,
+    `Sito / profilo: ${websiteInput || '—'}`,
     `Story: ${story || '—'}`,
     '',
     'Privacy accettata: sì',
